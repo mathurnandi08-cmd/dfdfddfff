@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>চান্দা Pro | Chanda Management</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Nunito:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- SheetJS (Excel export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- jsPDF + AutoTable (PDF export) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: { extend: { fontFamily: { display: ['Syne','sans-serif'], body: ['Nunito','Noto Sans Bengali','sans-serif'] } } }
+  }
+</script>
+
+<style>
+/* ══════════════════════════════════════════
+   CSS CUSTOM PROPERTIES
+══════════════════════════════════════════ */
+:root {
+  --bg:       #07090f;
+  --bg-card:  #0d1221;
+  --bg-surf:  #131c30;
+  --bg-hov:   #1a2540;
+  --acc:      #7c3aed;
+  --acc-glow: rgba(124,58,237,.28);
+  --acc-lt:   #a78bfa;
+  --succ:     #059669;
+  --succ-bg:  rgba(5,150,105,.15);
+  --dang:     #dc2626;
+  --dang-bg:  rgba(220,38,38,.15);
+  --warn:     #d97706;
+  --tp:       #f1f5f9;
+  --ts:       #7c8db5;
+  --tm:       #3d4f6e;
+  --bdr:      rgba(120,140,180,.1);
+  --bdr-acc:  rgba(124,58,237,.3);
+  --cur-bg:   rgba(6,182,212,.12);
+  --cur-bdr:  rgba(6,182,212,.35);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Nunito','Noto Sans Bengali',sans-serif;background:var(--bg);color:var(--tp);min-height:100vh;font-size:14px}
+
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg-card)}
+::-webkit-scrollbar-thumb{background:var(--acc);border-radius:10px}
+
+/* Spinner */
+.spin{width:36px;height:36px;border:3px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:rot .8s linear infinite}
+.spin-sm{width:18px;height:18px;border-width:2px;display:inline-block;vertical-align:middle}
+@keyframes rot{to{transform:rotate(360deg)}}
+
+/* Login bg */
+.login-bg{
+  background:
+    radial-gradient(ellipse 60% 50% at 25% 5%, rgba(124,58,237,.18) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 75% 95%, rgba(59,130,246,.12) 0%, transparent 60%),
+    var(--bg);
+}
+.glass-card{
+  background:linear-gradient(135deg,rgba(255,255,255,.05),rgba(255,255,255,.015));
+  border:1px solid var(--bdr);backdrop-filter:blur(20px);border-radius:24px;
+}
+.logo-ring{
+  width:72px;height:72px;border-radius:50%;
+  background:linear-gradient(135deg,var(--acc),#3b82f6);
+  display:flex;align-items:center;justify-content:center;font-size:28px;
+  margin:0 auto 18px;box-shadow:0 0 30px var(--acc-glow);
+}
+
+/* OTP boxes */
+.otp-box{
+  width:48px;height:56px;text-align:center;font-size:22px;font-weight:700;
+  background:var(--bg-surf);border:1.5px solid var(--bdr);border-radius:12px;
+  color:var(--tp);outline:none;transition:all .2s;font-family:'Syne',sans-serif;
+}
+.otp-box:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-glow)}
+
+/* Buttons */
+.btn-pri{
+  background:linear-gradient(135deg,var(--acc),#5b21b6);color:#fff;border:none;
+  border-radius:12px;padding:11px 22px;font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 4px 18px var(--acc-glow);
+}
+.btn-pri:hover{transform:translateY(-1px);box-shadow:0 6px 24px var(--acc-glow)}
+.btn-pri:active{transform:translateY(0)}
+.btn-pri:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+.btn-sec{
+  background:var(--bg-surf);color:var(--tp);border:1px solid var(--bdr);
+  border-radius:10px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
+}
+.btn-sec:hover{background:var(--bg-hov);border-color:var(--bdr-acc)}
+
+.btn-ghost{
+  background:transparent;border:1px solid var(--bdr);border-radius:8px;
+  padding:7px 13px;font-family:inherit;font-size:12px;font-weight:600;
+  cursor:pointer;color:var(--ts);transition:all .2s;
+}
+.btn-ghost:hover{background:var(--bg-surf);color:var(--tp)}
+.btn-ghost.active{background:var(--acc);border-color:var(--acc);color:#fff;box-shadow:0 3px 10px var(--acc-glow)}
+
+.btn-icon{
+  width:30px;height:30px;border-radius:7px;display:inline-flex;align-items:center;
+  justify-content:center;cursor:pointer;transition:all .2s;border:none;font-size:14px;
+}
+.btn-wa{
+  width:28px;height:28px;border-radius:7px;background:rgba(37,211,102,.14);
+  color:#25d366;border:1px solid rgba(37,211,102,.22);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:13px;cursor:pointer;transition:all .2s;text-decoration:none;
+}
+.btn-wa:hover{background:rgba(37,211,102,.3)}
+
+/* Form inputs */
+.inp{
+  background:var(--bg-surf);border:1.5px solid var(--bdr);border-radius:11px;
+  padding:10px 14px;font-family:inherit;font-size:14px;color:var(--tp);
+  width:100%;transition:border-color .2s;outline:none;
+}
+.inp:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--acc-glow)}
+.inp::placeholder{color:var(--tm)}
+.inp-label{
+  font-size:11px;font-weight:800;color:var(--ts);text-transform:uppercase;
+  letter-spacing:.07em;margin-bottom:6px;display:block;
+}
+
+/* Header */
+.app-header{
+  background:rgba(13,18,33,.94);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:200;padding:0 20px;
+}
+
+/* Stat cards */
+.stat-card{
+  background:var(--bg-card);border:1px solid var(--bdr);border-radius:18px;
+  padding:20px 20px 16px;transition:all .3s;position:relative;overflow:hidden;
+}
+.stat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2.5px;border-radius:2px 2px 0 0;
+}
+.stat-card.vc::before{background:linear-gradient(90deg,var(--acc),#3b82f6)}
+.stat-card.gr::before{background:linear-gradient(90deg,#059669,#10b981)}
+.stat-card.rd::before{background:linear-gradient(90deg,var(--dang),#f97316)}
+.stat-card.cy::before{background:linear-gradient(90deg,#0891b2,#06b6d4)}
+.stat-card.am::before{background:linear-gradient(90deg,var(--warn),#eab308)}
+.stat-card:hover{transform:translateY(-2px);border-color:var(--bdr-acc)}
+
+/* Ledger table */
+.tbl-wrap{overflow-x:auto;border-radius:16px;border:1px solid var(--bdr)}
+table.ledger{width:100%;border-collapse:separate;border-spacing:0;min-width:920px}
+table.ledger th{
+  background:var(--bg-surf);color:var(--ts);font-size:10px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.07em;padding:11px 8px;
+  border-bottom:1px solid var(--bdr);white-space:nowrap;
+  position:sticky;top:0;z-index:10;text-align:center;
+}
+table.ledger th.cm{
+  background:var(--cur-bg)!important;color:#67e8f9;border-bottom:1.5px solid var(--cur-bdr);
+}
+table.ledger td{
+  padding:7px 8px;border-bottom:1px solid rgba(120,140,180,.05);
+  vertical-align:middle;text-align:center;
+}
+table.ledger td.cm-td{background:rgba(6,182,212,.06)}
+table.ledger tbody tr:hover td{background:var(--bg-hov)}
+table.ledger tbody tr:hover td.cm-td{background:rgba(6,182,212,.12)}
+table.ledger th:nth-child(3),table.ledger td:nth-child(3){text-align:left}
+
+/* Payment cells */
+.pcell{
+  width:34px;height:27px;border-radius:7px;display:inline-flex;align-items:center;
+  justify-content:center;font-size:12px;transition:all .18s;
+  border:1px solid transparent;font-weight:800;
+}
+.pcell.pd{background:var(--succ-bg);color:#34d399;border-color:rgba(52,211,153,.2);cursor:pointer}
+.pcell.up{background:var(--dang-bg);color:#f87171;border-color:rgba(248,113,113,.2);cursor:pointer}
+.pcell.pd:hover{background:rgba(5,150,105,.3);transform:scale(1.12)}
+.pcell.up:hover{background:rgba(220,38,38,.3);transform:scale(1.12)}
+.pcell.ro{cursor:default!important}
+.pcell.ro:hover{transform:none!important;background:inherit!important}
+
+/* Avatar */
+.av{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--bdr-acc);cursor:pointer;transition:transform .2s}
+.av:hover{transform:scale(1.15)}
+.av-ph{
+  width:34px;height:34px;border-radius:50%;
+  background:linear-gradient(135deg,var(--acc),#3b82f6);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#fff;cursor:pointer;
+  border:2px solid var(--bdr-acc);transition:transform .2s;flex-shrink:0;
+}
+.av-ph:hover{transform:scale(1.15)}
+
+/* Badges */
+.badge{
+  display:inline-flex;align-items:center;padding:3px 10px;
+  border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;
+}
+.b-sa{background:rgba(124,58,237,.2);color:#c4b5fd;border:1px solid rgba(124,58,237,.3)}
+.b-ad{background:rgba(59,130,246,.2);color:#93c5fd;border:1px solid rgba(59,130,246,.3)}
+.b-mb{background:rgba(15,118,110,.2);color:#5eead4;border:1px solid rgba(15,118,110,.3)}
+
+/* Modals */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;
+}
+.modal-box{
+  background:var(--bg-card);border:1px solid var(--bdr);border-radius:22px;
+  width:100%;max-width:480px;max-height:93vh;overflow-y:auto;padding:26px;
+  animation:slideUp .28s ease;
+}
+.modal-box.wide{max-width:560px}
+.modal-box.xl{max-width:640px}
+@keyframes slideUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* Toasts */
+.toast-item{
+  display:flex;align-items:center;gap:10px;background:var(--bg-surf);border-radius:12px;
+  padding:12px 18px;font-size:13px;font-weight:500;max-width:320px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);animation:toastIn .3s ease;
+  margin-bottom:8px;border-left:3px solid var(--acc);
+}
+.toast-item.s{border-color:var(--succ)}
+.toast-item.e{border-color:var(--dang)}
+.toast-item.w{border-color:var(--warn)}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* Progress bar */
+.pbar{height:5px;background:var(--bdr);border-radius:5px;overflow:hidden;margin-top:10px}
+.pbar-fill{height:100%;background:linear-gradient(90deg,var(--acc),#3b82f6);border-radius:5px;transition:width .6s ease}
+
+/* Year button */
+.yr-btn{
+  padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;
+  border:1px solid var(--bdr);background:transparent;color:var(--ts);font-family:inherit;transition:all .2s;
+}
+.yr-btn.active{background:var(--acc);color:#fff;border-color:var(--acc);box-shadow:0 3px 10px var(--acc-glow)}
+.yr-btn:hover:not(.active){background:var(--bg-hov);color:var(--tp)}
+
+/* Settings section card */
+.s-card{background:var(--bg-surf);border:1px solid var(--bdr);border-radius:14px;padding:18px}
+
+/* DP upload zone */
+.dp-zone{
+  border:2px dashed var(--bdr-acc);border-radius:14px;
+  padding:26px;text-align:center;cursor:pointer;transition:all .2s;
+}
+.dp-zone:hover{background:rgba(124,58,237,.08)}
+
+@media(max-width:768px){
+  .hide-sm{display:none!important}
+  .modal-box{padding:18px}
+}
+@media(max-width:480px){
+  .otp-box{width:38px;height:48px;font-size:19px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LOADING SCREEN
+══════════════════════════════════════════ -->
+<div id="loadingScreen" style="position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;z-index:9999;">
+  <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#3b82f6);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 0 30px var(--acc-glow);">🔱</div>
+  <div class="spin"></div>
+  <p style="color:var(--ts);font-size:13px;font-weight:500;">লোড হচ্ছে... Connecting to Firebase...</p>
+</div>
+
+<!-- ══════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════ -->
+<div id="loginScreen" class="login-bg" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;">
+  <div class="glass-card" style="width:100%;max-width:400px;padding:36px 30px;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <div class="logo-ring">🔱</div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-.5px;">চান্দা Pro</h1>
+      <p style="color:var(--ts);font-size:13px;margin-top:4px;">Enterprise Chanda Management System</p>
+    </div>
+
+    <!-- Step 1: Phone number -->
+    <div id="phoneSection">
+      <label class="inp-label">📱 ফোন নম্বর | Phone Number</label>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <div style="background:var(--bg-surf);border:1.5px solid var(--bdr);border-radius:11px;padding:10px 12px;font-size:14px;font-weight:700;white-space:nowrap;color:var(--acc);flex-shrink:0;">🇮🇳 +91</div>
+        <input id="phoneInput" class="inp" type="tel" maxlength="10" placeholder="10-digit mobile number" onkeydown="if(event.key==='Enter')window.sendOTP()">
+      </div>
+      <button id="sendOTPBtn" class="btn-pri" style="width:100%;justify-content:center;" onclick="window.sendOTP()">
+        OTP পাঠান &nbsp;→
+      </button>
+      <div id="recaptcha-container" style="margin-top:10px;"></div>
+      <p style="text-align:center;color:var(--tm);font-size:11px;margin-top:12px;">🔐 Firebase Phone Authentication</p>
+    </div>
+
+    <!-- Step 2: OTP verification -->
+    <div id="otpSection" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <button onclick="document.getElementById('otpSection').style.display='none';document.getElementById('phoneSection').style.display='block';"
+          style="background:none;border:none;color:var(--acc);font-size:20px;cursor:pointer;line-height:1;">←</button>
+        <div>
+          <p style="font-weight:700;font-size:14px;">OTP যাচাই করুন | Verify OTP</p>
+          <p style="font-size:11px;color:var(--ts);margin-top:2px;">ফোনে পাঠানো ৬-সংখ্যার কোড</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-bottom:18px;">
+        <input class="otp-box" id="otp1" type="tel" maxlength="1" inputmode="numeric">
+        <input class="otp-box" id="otp2" type="tel" maxlength="1" inputmode="numeric">
+        <input class="otp-box" id="otp3" type="tel" maxlength="1" inputmode="numeric">
+        <input class="otp-box" id="otp4" type="tel" maxlength="1" inputmode="numeric">
+        <input class="otp-box" id="otp5" type="tel" maxlength="1" inputmode="numeric">
+        <input class="otp-box" id="otp6" type="tel" maxlength="1" inputmode="numeric">
+      </div>
+      <button id="verifyBtn" class="btn-pri" style="width:100%;justify-content:center;" onclick="window.verifyOTP()">
+        ✅ যাচাই করুন | Verify
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MAIN APPLICATION
+══════════════════════════════════════════ -->
+<div id="mainApp" style="display:none;">
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div style="max-width:1600px;margin:0 auto;display:flex;align-items:center;gap:12px;height:58px;">
+      <!-- Brand -->
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--acc),#3b82f6);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px var(--acc-glow);">🔱</div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;line-height:1;">চান্দা Pro</div>
+          <div style="font-size:9px;color:var(--ts);">Chanda Management</div>
+        </div>
+      </div>
+
+      <!-- Year selector (desktop only) -->
+      <div id="yrD" class="hide-sm" style="display:flex;gap:5px;margin-left:8px;"></div>
+
+      <div style="flex:1;"></div>
+
+      <!-- Right side controls -->
+      <div style="display:flex;align-items:center;gap:8px;">
+        <!-- Budget chip (Super Admin) -->
+        <div id="budgetChip" style="display:none;background:var(--bg-surf);border:1px solid var(--bdr);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--acc-lt);">
+          ₹<span id="bcAmt">100</span>/মাস
+        </div>
+        <!-- Settings gear (Super Admin) -->
+        <button id="gearBtn" onclick="window.openSettings()" class="btn-icon hide-sm" style="background:rgba(124,58,237,.12);color:var(--acc-lt);display:none;" title="⚙️ Admin Settings">⚙️</button>
+        <!-- Role badge -->
+        <div id="roleBadge" class="badge b-mb">Member 👤</div>
+        <!-- Phone -->
+        <div id="headerPhone" class="hide-sm" style="font-size:11px;color:var(--ts);font-weight:600;"></div>
+        <!-- Logout -->
+        <button onclick="window.doLogout()" class="btn-icon" style="background:var(--dang-bg);color:#f87171;" title="Logout">⎋</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <main style="max-width:1600px;margin:0 auto;padding:18px 16px;">
+
+    <!-- STAT CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;">
+
+      <div class="stat-card vc">
+        <div style="font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">👥 মোট সদস্য</div>
+        <div id="s1" style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--acc-lt);">—</div>
+        <div id="s1b" style="font-size:11px;color:var(--tm);margin-top:2px;">সদস্য | Members</div>
+      </div>
+
+      <div class="stat-card gr">
+        <div style="font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">✅ মোট আদায়</div>
+        <div id="s2" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#34d399;">—</div>
+        <div id="s2b" style="font-size:10px;color:var(--tm);margin-top:3px;">চান্দা + অতিরিক্ত</div>
+      </div>
+
+      <div class="stat-card rd">
+        <div style="font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">⏳ মোট বকেয়া</div>
+        <div id="s3" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#f87171;">—</div>
+        <div id="s3b" style="font-size:10px;color:var(--tm);margin-top:3px;">এখনও বাকি</div>
+      </div>
+
+      <div class="stat-card cy">
+        <div style="font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">💰 অতিরিক্ত সংগ্রহ</div>
+        <div id="s4" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#67e8f9;">—</div>
+        <div id="s4b" style="font-size:10px;color:var(--tm);margin-top:3px;">Misc donation</div>
+      </div>
+
+      <div class="stat-card am">
+        <div style="font-size:10px;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;">📊 আদায়ের হার</div>
+        <div id="s5" style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:#fbbf24;">—</div>
+        <div class="pbar"><div id="pFill" class="pbar-fill" style="width:0%"></div></div>
+      </div>
+
+    </div>
+
+    <!-- CONTROLS BAR -->
+    <div style="background:var(--bg-card);border:1px solid var(--bdr);border-radius:16px;padding:14px 16px;margin-bottom:14px;">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px;">
+        <!-- Year selector mobile -->
+        <div id="yrM" style="display:flex;gap:5px;flex-wrap:wrap;"></div>
+        <!-- Search input -->
+        <input id="searchInp" class="inp" type="text" placeholder="🔍 নাম বা ফোন | Search name or phone..."
+          oninput="window.doSearch(this.value)"
+          style="flex:1;min-width:180px;padding:9px 14px;">
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn-ghost active" id="fAll"  onclick="window.setFilter('all')">সব | All</button>
+          <button class="btn-ghost" id="fDef"         onclick="window.setFilter('def')">⚠️ বকেয়া</button>
+          <button class="btn-ghost" id="fClr"         onclick="window.setFilter('clr')">✅ পরিশোধ</button>
+          <button class="btn-ghost" id="fCur"         onclick="window.setFilter('cur')">📅 এই মাস বকেয়া</button>
+        </div>
+        <div id="actBtns" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+      </div>
+    </div>
+
+    <!-- TABLE AREA -->
+    <div id="tableArea"></div>
+
+    <div style="height:40px;"></div>
+  </main>
+</div><!-- /mainApp -->
+
+
+<!-- ══════════════════════════════════════════
+     MODAL — ADD / EDIT MEMBER (Super Admin only)
+══════════════════════════════════════════ -->
+<div id="memberModal" class="overlay" style="display:none;" onclick="if(event.target===this)window.closeMemberModal()">
+  <div class="modal-box">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 id="mTitle" style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;">নতুন সদস্য</h2>
+      <button onclick="window.closeMemberModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ts);">✕</button>
+    </div>
+    <input type="hidden" id="mId">
+    <div style="display:flex;flex-direction:column;gap:13px;">
+      <div>
+        <label class="inp-label">👤 পুরো নাম | Full Name *</label>
+        <input id="mName" class="inp" type="text" placeholder="সদস্যের পুরো নাম">
+      </div>
+      <div>
+        <label class="inp-label">📱 ফোন | Phone (10-digit) *</label>
+        <input id="mPhone" class="inp" type="tel" placeholder="01XXXXXXXXX">
+      </div>
+      <div>
+        <label class="inp-label">📝 নোট | Note</label>
+        <input id="mNote" class="inp" type="text" placeholder="ঐচ্ছিক | Optional">
+      </div>
+      <div>
+        <label class="inp-label">🎭 ভূমিকা | Role</label>
+        <select id="mRole" class="inp">
+          <option value="member">Member — View Only (পুরো তালিকা দেখতে পারবে)</option>
+          <option value="admin">Admin — Payment Toggle (কিন্তু Add/Delete নেই)</option>
+        </select>
+      </div>
+      <div>
+        <label class="inp-label">🔑 Firebase UID (optional — লগইনের সাথে লিঙ্ক)</label>
+        <input id="mUID" class="inp" type="text" placeholder="Firebase Auth UID">
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn-sec" style="flex:1;justify-content:center;" onclick="window.closeMemberModal()">বাতিল</button>
+      <button class="btn-pri" style="flex:2;justify-content:center;" onclick="window.submitMember()">💾 সংরক্ষণ করুন</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL — PROFILE PICTURE (DP)
+══════════════════════════════════════════ -->
+<div id="dpModal" class="overlay" style="display:none;" onclick="if(event.target===this)window.closeDPModal()">
+  <div class="modal-box" style="max-width:360px;text-align:center;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h2 style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;">📸 প্রোফাইল ছবি</h2>
+      <button onclick="window.closeDPModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ts);">✕</button>
+    </div>
+    <input type="hidden" id="dpId">
+    <p id="dpName" style="font-size:14px;font-weight:700;margin-bottom:14px;color:var(--acc-lt);"></p>
+    <div style="width:110px;height:110px;border-radius:50%;margin:0 auto 16px;overflow:hidden;border:3px solid var(--bdr-acc);display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--acc),#3b82f6);">
+      <img id="dpImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;">
+      <span id="dpInit" style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#fff;"></span>
+    </div>
+    <div id="dpUpload" style="display:none;">
+      <div class="dp-zone" onclick="document.getElementById('dpFile').click()">
+        <div style="font-size:26px;margin-bottom:6px;">📤</div>
+        <p style="font-weight:700;font-size:13px;">ছবি আপলোড করুন</p>
+        <p style="font-size:10px;color:var(--ts);margin-top:3px;">JPG / PNG · max ~500KB</p>
+      </div>
+      <input type="file" id="dpFile" accept="image/*" style="display:none;" onchange="window.handleDPFile(event)">
+      <button id="dpSave" class="btn-pri" style="width:100%;justify-content:center;margin-top:10px;display:none;" onclick="window.saveDP()">💾 সংরক্ষণ করুন</button>
+    </div>
+    <div id="dpRO" style="display:none;color:var(--tm);font-size:12px;margin-top:8px;">👁️ View Only</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL — MY PROFILE (Member self-view)
+══════════════════════════════════════════ -->
+<div id="profileModal" class="overlay" style="display:none;" onclick="if(event.target===this)window.closeProfileModal()">
+  <div class="modal-box wide">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h2 style="font-family:'Syne',sans-serif;font-size:17px;font-weight:800;">👤 আমার প্রোফাইল | My Profile</h2>
+      <button onclick="window.closeProfileModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ts);">✕</button>
+    </div>
+    <div id="profileContent" style="text-align:center;color:var(--ts);">Loading...</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════
+     MODAL — ADMIN SETTINGS (Super Admin only)
+══════════════════════════════════════════ -->
+<div id="settingsModal" class="overlay" style="display:none;" onclick="if(event.target===this)window.closeSettings()">
+  <div class="modal-box xl">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;">
+      <div>
+        <h2 style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;">⚙️ Admin Settings</h2>
+        <p style="font-size:11px;color:var(--ts);margin-top:2px;">শুধু Super Admin দেখতে ও পরিবর্তন করতে পারবেন</p>
+      </div>
+      <button onclick="window.closeSettings()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--ts);">✕</button>
+    </div>
+
+    <!-- 1. Monthly Budget -->
+    <div class="s-card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:22px;">💰</span>
+        <div>
+          <p style="font-weight:800;font-size:14px;">মাসিক চান্দার পরিমাণ | Monthly Budget</p>
+          <p style="font-size:11px;color:var(--ts);margin-top:1px;">
+            পরিবর্তন করলে সমস্ত গণনা ও "মোট বকেয়া" তাৎক্ষণিক আপডেট হবে
+          </p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;">
+          <label class="inp-label">প্রতি মাসে (₹)</label>
+          <input id="stBudget" class="inp" type="number" min="1" placeholder="যেমন: 100, 200, 500">
+        </div>
+        <button class="btn-pri" onclick="window.saveBudget()" style="padding:10px 20px;flex-shrink:0;">💾 Save</button>
+      </div>
+      <!-- Quick presets -->
+      <div style="display:flex;gap:7px;margin-top:10px;flex-wrap:wrap;align-items:center;">
+        <span style="font-size:11px;color:var(--tm);">দ্রুত:</span>
+        <button class="btn-ghost" onclick="document.getElementById('stBudget').value=50">₹50</button>
+        <button class="btn-ghost" onclick="document.getElementById('stBudget').value=100">₹100</button>
+        <button class="btn-ghost" onclick="document.getElementById('stBudget').value=200">₹200</button>
+        <button class="btn-ghost" onclick="document.getElementById('stBudget').value=500">₹500</button>
+      </div>
+    </div>
+
+    <!-- 2. Extra / Misc Money -->
+    <div class="s-card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:22px;">🎁</span>
+        <div>
+          <p style="font-weight:800;font-size:14px;">অতিরিক্ত সংগ্রহ | Misc Donation (<span id="stYear">—</span>)</p>
+          <p style="font-size:11px;color:var(--ts);margin-top:1px;">
+            যে কোনো বিচ্ছিন্ন অনুদান — "মোট আদায়" কার্ডে যোগ হবে
+          </p>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="flex:1;min-width:140px;">
+            <label class="inp-label">পরিমাণ (₹) | Amount</label>
+            <input id="stExtra" class="inp" type="number" min="0" placeholder="যেমন: 50, 150...">
+          </div>
+          <div style="flex:2;min-width:160px;">
+            <label class="inp-label">নোট | Description</label>
+            <input id="stExNote" class="inp" type="text" placeholder="যেমন: উৎসব অনুদান, বিশেষ দান...">
+          </div>
+        </div>
+        <button class="btn-pri" onclick="window.saveExtra()" style="align-self:flex-start;padding:10px 20px;">💾 Save</button>
+      </div>
+      <!-- Current saved display -->
+      <div id="stExBox" style="margin-top:12px;background:var(--cur-bg);border:1px solid var(--cur-bdr);border-radius:10px;padding:10px 14px;display:none;">
+        <p style="font-size:11px;font-weight:700;color:#67e8f9;">বর্তমানে সংরক্ষিত:</p>
+        <p id="stExCur" style="font-size:13px;color:var(--tp);margin-top:3px;"></p>
+      </div>
+    </div>
+
+    <!-- 3. Role Reference -->
+    <div class="s-card">
+      <p style="font-weight:800;font-size:13px;margin-bottom:10px;">🎭 ভূমিকা | Role Reference</p>
+      <div style="display:flex;flex-direction:column;gap:9px;font-size:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge b-sa">Super Admin 🔱</span>
+          <span style="color:var(--ts);">সব কিছু — Add/Delete/Settings/Export/PDF</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge b-ad">Admin 🛡️</span>
+          <span style="color:var(--ts);">Payment Toggle + WhatsApp — কিন্তু Add/Delete নেই</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="badge b-mb">Member 👤</span>
+          <span style="color:var(--ts);">সম্পূর্ণ তালিকা দেখতে পারবেন — View Only (নিজের DP আপলোড করতে পারবেন)</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- TOAST -->
+<div id="toastBox" style="position:fixed;bottom:22px;right:20px;z-index:9999;display:flex;flex-direction:column-reverse;"></div>
+
+
+<!-- ══════════════════════════════════════════
+     FIREBASE v10 MODULAR SCRIPT
+══════════════════════════════════════════ -->
+<script type="module">
+
+// ─────────────────────────────────────────
+// FIREBASE v10 IMPORTS
+// ─────────────────────────────────────────
+import { initializeApp }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged, signOut }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp }
+  from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+// ─────────────────────────────────────────
+// FIREBASE CONFIG
+// ─────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyAojOVJT6d2BKvj7twlK-isSuFs_imt-pM",
+  authDomain:        "chanda-web-bf68a.firebaseapp.com",
+  projectId:         "chanda-web-bf68a",
+  storageBucket:     "chanda-web-bf68a.firebasestorage.app",
+  messagingSenderId: "963817984811",
+  appId:             "1:963817984811:web:bf2b1f669ec474e41e2b6e"
+};
+
+// ─────────────────────────────────────────
+// 🔐 SUPER ADMIN UID — HARDCODED
+// ─────────────────────────────────────────
+const SUPER_ADMIN_UID = '7YYwM5y6kld2Q0JzAHYw2TlGucF2';
+
+// ─────────────────────────────────────────
+// FIREBASE INIT
+// ─────────────────────────────────────────
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ─────────────────────────────────────────
+// CONSTANTS
+// ─────────────────────────────────────────
+const YEARS = ['2023','2024','2025','2026','2027','2028'];
+
+const MONTHS = [
+  {k:'jan',en:'Jan',bn:'জানু'},{k:'feb',en:'Feb',bn:'ফেব'},
+  {k:'mar',en:'Mar',bn:'মার্চ'},{k:'apr',en:'Apr',bn:'এপ্রি'},
+  {k:'may',en:'May',bn:'মে'},{k:'jun',en:'Jun',bn:'জুন'},
+  {k:'jul',en:'Jul',bn:'জুলা'},{k:'aug',en:'Aug',bn:'আগস্ট'},
+  {k:'sep',en:'Sep',bn:'সেপ'},{k:'oct',en:'Oct',bn:'অক্টো'},
+  {k:'nov',en:'Nov',bn:'নভে'},{k:'dec',en:'Dec',bn:'ডিসে'},
+];
+
+// Real-world current month detection
+const NOW         = new Date();
+const CUR_M_IDX   = NOW.getMonth();           // 0–11
+const CUR_M_KEY   = MONTHS[CUR_M_IDX].k;      // e.g. 'mar'
+const CUR_M_LABEL = `${MONTHS[CUR_M_IDX].en} ${NOW.getFullYear()}`; // e.g. 'Mar 2026'
+
+// ─────────────────────────────────────────
+// APP STATE (single source of truth)
+// ─────────────────────────────────────────
+const S = {
+  user:     null,
+  role:     null,   // 'superadmin' | 'admin' | 'member'
+  memberId: null,   // Firestore doc ID linked to this user's login
+  year:     String(NOW.getFullYear()),
+  members:  [],
+  payments: {},
+  budget:   100,    // Loaded from Firestore appSettings/global
+  extra:    0,      // Loaded from Firestore appSettings/extra_YEAR
+  extraNote:'',
+  search:   '',
+  filter:   'all',
+};
+
+// ─────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────
+
+/** Toast notification: type = 's'|'e'|'w'|'i' */
+function toast(msg, type = 'i') {
+  const box = document.getElementById('toastBox');
+  const el  = document.createElement('div');
+  el.className = `toast-item ${type}`;
+  el.innerHTML = `<span style="font-size:16px;">${{s:'✅',e:'❌',w:'⚠️',i:'ℹ️'}[type]||'ℹ️'}</span><span>${msg}</span>`;
+  box.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = '.3s'; el.style.opacity = '0'; el.style.transform = 'translateX(20px)';
+    setTimeout(() => el.remove(), 320);
+  }, 3600);
+}
+
+const initials = n => (n||'?').split(' ').map(w=>w[0]||'').join('').toUpperCase().slice(0,2);
+const inr      = n => '₹' + Number(n||0).toLocaleString('en-IN');
+
+function waPhone(p = '') {
+  const c = p.replace(/\D/g,'');
+  if (c.length===12&&c.startsWith('91')) return c;
+  return '91' + c.slice(-10);
+}
+
+/** Canvas-based image compression → base64 JPEG */
+function compressImg(file, maxPx = 220, q = 0.72) {
+  return new Promise(resolve => {
+    const img = new Image(), url = URL.createObjectURL(file);
+    img.onload = () => {
+      const r = Math.min(maxPx/img.width, maxPx/img.height, 1);
+      const cv = document.createElement('canvas');
+      cv.width = img.width*r; cv.height = img.height*r;
+      cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height);
+      URL.revokeObjectURL(url);
+      resolve(cv.toDataURL('image/jpeg', q));
+    };
+    img.src = url;
+  });
+}
+
+// ─────────────────────────────────────────
+// AUTHENTICATION
+// ─────────────────────────────────────────
+let rcVerifier = null, confirmResult = null;
+
+function initRC() {
+  if (!rcVerifier) {
+    rcVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      size: 'invisible', callback: () => {},
+      'expired-callback': () => { rcVerifier = null; }
+    });
+  }
+}
+
+async function sendOTP() {
+  const raw = document.getElementById('phoneInput').value.trim().replace(/\D/g,'');
+  if (raw.length < 10) { toast('সঠিক ১০-সংখ্যার ফোন দিন | Enter 10-digit phone', 'e'); return; }
+  const phone = '+91' + raw.slice(-10);
+  const btn = document.getElementById('sendOTPBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin spin-sm"></span>&nbsp;পাঠানো হচ্ছে...';
+  try {
+    initRC();
+    confirmResult = await signInWithPhoneNumber(auth, phone, rcVerifier);
+    toast('OTP পাঠানো হয়েছে ✓ | OTP sent!', 's');
+    document.getElementById('phoneSection').style.display = 'none';
+    document.getElementById('otpSection').style.display   = 'block';
+    document.getElementById('otp1').focus();
+  } catch (err) {
+    console.error('[sendOTP]', err);
+    const m = {'auth/invalid-phone-number':'ফোন নম্বর ভুল','auth/too-many-requests':'অনেক চেষ্টা — পরে আবার চেষ্টা করুন'};
+    toast(m[err.code]||'Error: '+err.message, 'e');
+    rcVerifier = null;
+  } finally {
+    btn.disabled = false; btn.innerHTML = 'OTP পাঠান &nbsp;→';
+  }
+}
+
+async function verifyOTP() {
+  const code = [1,2,3,4,5,6].map(n=>(document.getElementById(`otp${n}`)?.value||'')).join('');
+  if (code.length<6) { toast('৬-সংখ্যার OTP দিন', 'e'); return; }
+  if (!confirmResult) { toast('আগে OTP পাঠান', 'w'); return; }
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spin spin-sm"></span>&nbsp;যাচাই হচ্ছে...';
+  try {
+    await confirmResult.confirm(code);
+  } catch (err) {
+    console.error('[verifyOTP]', err);
+    const m = {'auth/invalid-verification-code':'OTP ভুল','auth/code-expired':'OTP মেয়াদ শেষ — আবার পাঠান'};
+    toast(m[err.code]||'Error: '+err.message, 'e');
+    btn.disabled = false; btn.innerHTML = '✅ যাচাই করুন | Verify';
+  }
+}
+
+function wireOTP() {
+  for (let i=1;i<=6;i++) {
+    const el = document.getElementById(`otp${i}`);
+    if (!el) continue;
+    el.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/\D/g,'').slice(-1);
+      if (e.target.value && i<6) document.getElementById(`otp${i+1}`).focus();
+      if (i===6 && e.target.value) verifyOTP();
+    });
+    el.addEventListener('keydown', e => {
+      if (e.key==='Backspace'&&!e.target.value&&i>1) document.getElementById(`otp${i-1}`).focus();
+    });
+  }
+}
+document.addEventListener('paste', e => {
+  const t = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'');
+  if (t.length===6&&document.getElementById('otpSection')?.style.display!=='none') {
+    [...t].forEach((c,i)=>{const el=document.getElementById(`otp${i+1}`);if(el)el.value=c;});
+    verifyOTP();
+  }
+});
+
+// ─────────────────────────────────────────
+// ROLE RESOLVER
+// ─────────────────────────────────────────
+async function resolveRole(uid) {
+  // 1. Hardcoded Super Admin
+  if (uid === SUPER_ADMIN_UID) return { role:'superadmin', memberId:null };
+  // 2. Firestore userRoles collection
+  try {
+    const snap = await getDoc(doc(db,'userRoles',uid));
+    if (snap.exists()) return snap.data(); // { role, memberId }
+  } catch (err) { console.warn('[resolveRole]',err); }
+  // 3. Default: member (view-only)
+  return { role:'member', memberId:null };
+}
+
+// ─────────────────────────────────────────
+// SETTINGS — Budget & Extra Money
+// ─────────────────────────────────────────
+
+async function loadSettings() {
+  // Monthly budget
+  try {
+    const g = await getDoc(doc(db,'appSettings','global'));
+    if (g.exists()) S.budget = g.data().monthlyAmount || 100;
+  } catch(e){ console.warn('[settings/global]',e); }
+  // Extra for selected year
+  try {
+    const e = await getDoc(doc(db,'appSettings',`extra_${S.year}`));
+    S.extra = e.exists() ? (e.data().amount||0) : 0;
+    S.extraNote = e.exists() ? (e.data().note||'') : '';
+  } catch(e){ console.warn('[settings/extra]',e); S.extra=0; S.extraNote=''; }
+}
+
+async function saveBudget() {
+  const val = parseFloat(document.getElementById('stBudget').value);
+  if (!val||val<1) { toast('বৈধ পরিমাণ দিন | Enter valid amount', 'e'); return; }
+  try {
+    await setDoc(doc(db,'appSettings','global'),{monthlyAmount:val,updatedAt:serverTimestamp()},{merge:true});
+    S.budget = val;
+    // Update budget chip in header
+    document.getElementById('bcAmt').textContent = val;
+    renderStats(); renderTable();
+    toast(`✓ মাসিক চান্দা ${inr(val)} সেট হয়েছে | Budget updated`, 's');
+  } catch(err){
+    console.error('[saveBudget]',err);
+    toast('সংরক্ষণ ব্যর্থ | Save failed: '+err.message,'e');
+  }
+}
+
+async function saveExtra() {
+  const amt  = parseFloat(document.getElementById('stExtra').value)||0;
+  const note = document.getElementById('stExNote').value.trim();
+  try {
+    await setDoc(doc(db,'appSettings',`extra_${S.year}`),{amount:amt,note,updatedAt:serverTimestamp()});
+    S.extra = amt; S.extraNote = note;
+    renderStats();
+    refreshExtraDisplay();
+    toast(`✓ অতিরিক্ত ${inr(amt)} সংরক্ষিত | Extra saved`, 's');
+  } catch(err){
+    console.error('[saveExtra]',err);
+    toast('সংরক্ষণ ব্যর্থ | Save failed: '+err.message,'e');
+  }
+}
+
+function refreshExtraDisplay() {
+  const box = document.getElementById('stExBox');
+  const txt = document.getElementById('stExCur');
+  if (S.extra > 0) {
+    box.style.display = 'block';
+    txt.textContent = `${inr(S.extra)}${S.extraNote ? ' — '+S.extraNote : ''}`;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+// ─────────────────────────────────────────
+// DATA LAYER
+// ─────────────────────────────────────────
+
+async function loadMembers() {
+  try {
+    const snap = await getDocs(query(collection(db,'members'), orderBy('name')));
+    S.members  = snap.docs.map(d=>({id:d.id,...d.data()}));
+  } catch(err){
+    console.error('[loadMembers]',err);
+    toast('সদস্য লোড ব্যর্থ | Failed to load members','e');
+  }
+}
+
+async function loadPayments(year) {
+  try {
+    const snap = await getDocs(query(collection(db,'payments'), where('year','==',year)));
+    S.payments = {};
+    snap.docs.forEach(d=>{ const dat=d.data(); S.payments[dat.memberId]=dat; });
+  } catch(err){
+    console.error('[loadPayments]',err);
+    toast('পেমেন্ট লোড ব্যর্থ | Failed to load payments','e');
+  }
+}
+
+async function refresh() {
+  setLoading();
+  await Promise.all([loadSettings(), loadMembers(), loadPayments(S.year)]);
+  renderAll();
+}
+
+function setLoading() {
+  document.getElementById('tableArea').innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:70px;gap:14px;">
+      <div class="spin"></div>
+      <p style="color:var(--ts);font-size:13px;">লোড হচ্ছে... Loading...</p>
+    </div>`;
+}
+
+/** Toggle payment — Admin + Super Admin only */
+async function togglePayment(memberId, month) {
+  const cur  = S.payments[memberId]?.[month] || false;
+  const nval = !cur;
+  const docId = `${S.year}_${memberId}`;
+  try {
+    if (S.payments[memberId]) {
+      await updateDoc(doc(db,'payments',docId),{[month]:nval});
+    } else {
+      const blank = {memberId, year:S.year};
+      MONTHS.forEach(m=>blank[m.k]=false);
+      blank[month] = nval;
+      await setDoc(doc(db,'payments',docId),blank);
+    }
+    if (!S.payments[memberId]) {
+      S.payments[memberId] = {memberId,year:S.year};
+      MONTHS.forEach(m=>S.payments[memberId][m.k]=false);
+    }
+    S.payments[memberId][month] = nval;
+    renderTable(); renderStats();
+    toast(nval ? `✅ ${month.toUpperCase()} — পেমেন্ট নিশ্চিত` : `❌ ${month.toUpperCase()} — বাতিল`, nval?'s':'w');
+  } catch(err){
+    console.error('[togglePayment]',err);
+    toast('পেমেন্ট আপডেট ব্যর্থ | Update failed','e');
+  }
+}
+
+/** Add/update member — Super Admin only */
+async function saveMember(id, data) {
+  try {
+    if (id) {
+      await updateDoc(doc(db,'members',id),data);
+      if (data.uid) await setDoc(doc(db,'userRoles',data.uid),{role:data.role||'member',memberId:id},{merge:true});
+    } else {
+      const newId = `m_${Date.now()}`;
+      await setDoc(doc(db,'members',newId),{...data,createdAt:serverTimestamp()});
+      if (data.uid) await setDoc(doc(db,'userRoles',data.uid),{role:data.role||'member',memberId:newId},{merge:true});
+    }
+    toast(id?'✓ সদস্য আপডেট | Updated':'✓ নতুন সদস্য যোগ | Added','s');
+    closeMemberModal();
+    await refresh();
+  } catch(err){
+    console.error('[saveMember]',err);
+    toast('সংরক্ষণ ব্যর্থ | Save failed: '+err.message,'e');
+  }
+}
+
+/** Delete member — Super Admin only */
+async function deleteMember(id, name) {
+  if (!confirm(`"${name}" মুছবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।\nDelete "${name}"? Cannot be undone.`)) return;
+  try {
+    await deleteDoc(doc(db,'members',id));
+    toast(`"${name}" মুছে ফেলা হয়েছে | Deleted`,'s');
+    await refresh();
+  } catch(err){
+    console.error('[deleteMember]',err);
+    toast('মুছতে ব্যর্থ | Delete failed','e');
+  }
+}
+
+/** Update DP — stored as base64 in Firestore */
+async function updateDP(memberId, b64) {
+  try {
+    await updateDoc(doc(db,'members',memberId),{dp:b64});
+    const i = S.members.findIndex(m=>m.id===memberId);
+    if (i>-1) S.members[i].dp = b64;
+    renderTable();
+    toast('✓ প্রোফাইল ছবি সংরক্ষিত | DP saved','s');
+  } catch(err){
+    console.error('[updateDP]',err);
+    toast('DP সংরক্ষণ ব্যর্থ | DP save failed','e');
+  }
+}
+
+// ─────────────────────────────────────────
+// RENDER ENGINE
+// ─────────────────────────────────────────
+
+function renderAll() {
+  renderHeader();
+  renderYearBtns();
+  renderStats();
+  renderActBtns();
+  renderTable();
+}
+
+function renderHeader() {
+  const lbl  = {superadmin:'Super Admin 🔱',admin:'Admin 🛡️',member:'Member 👤'}[S.role]||'Member 👤';
+  const cls  = {superadmin:'b-sa',admin:'b-ad',member:'b-mb'}[S.role]||'b-mb';
+  const rb   = document.getElementById('roleBadge');
+  rb.className = `badge ${cls}`; rb.textContent = lbl;
+  document.getElementById('headerPhone').textContent = S.user?.phoneNumber || '';
+
+  if (S.role === 'superadmin') {
+    document.getElementById('budgetChip').style.display = 'flex';
+    document.getElementById('bcAmt').textContent = S.budget;
+    document.getElementById('gearBtn').style.display = 'flex';
+  } else {
+    document.getElementById('budgetChip').style.display = 'none';
+    document.getElementById('gearBtn').style.display = 'none';
+  }
+}
+
+function renderYearBtns() {
+  const h = YEARS.map(y=>`<button class="yr-btn ${y===S.year?'active':''}" onclick="window.selYear('${y}')">${y}</button>`).join('');
+  document.getElementById('yrD').innerHTML = h;
+  document.getElementById('yrM').innerHTML = h;
+}
+
+function renderStats() {
+  const paidMonths   = S.members.reduce((s,m)=>s+MONTHS.filter(mo=>S.payments[m.id]?.[mo.k]).length, 0);
+  const paidAmt      = paidMonths * S.budget;
+  const expected     = S.members.length * 12 * S.budget;
+  const pending      = expected - paidAmt;
+  const totalCollect = paidAmt + S.extra;    // ← Extra money added here
+  const rate         = expected > 0 ? Math.round((paidAmt/expected)*100) : 0;
+  const defaulters   = S.members.filter(m=>MONTHS.some(mo=>!(S.payments[m.id]?.[mo.k]))).length;
+
+  document.getElementById('s1').textContent  = S.members.length;
+  document.getElementById('s1b').textContent = `${defaulters} বকেয়াদার | defaulters`;
+  document.getElementById('s2').textContent  = inr(totalCollect);
+  document.getElementById('s2b').textContent = `চান্দা ${inr(paidAmt)} + অতিরিক্ত ${inr(S.extra)}`;
+  document.getElementById('s3').textContent  = inr(pending);
+  document.getElementById('s3b').textContent = `${expected>0?(100-rate):0}% এখনও বাকি | remaining`;
+  document.getElementById('s4').textContent  = inr(S.extra);
+  document.getElementById('s4b').textContent = S.extraNote || 'Misc donation';
+  document.getElementById('s5').textContent  = `${rate}%`;
+  document.getElementById('pFill').style.width = `${rate}%`;
+}
+
+function renderActBtns() {
+  const sa  = S.role === 'superadmin';
+  const adm = sa || S.role === 'admin';
+  const el  = document.getElementById('actBtns');
+  el.innerHTML = '';
+
+  // My Profile (members with a linked ID)
+  if (S.role === 'member' && S.memberId) {
+    const b = document.createElement('button');
+    b.className = 'btn-sec'; b.innerHTML = '👤 আমার প্রোফাইল';
+    b.onclick = () => window.openProfile();
+    el.appendChild(b);
+  }
+
+  // ── FIX: Remind only about the CURRENT MONTH ──
+  if (adm) {
+    const b = document.createElement('button');
+    b.className = 'btn-sec';
+    b.innerHTML = `💬 Remind — ${MONTHS[CUR_M_IDX].en} ${S.year === String(NOW.getFullYear()) ? '' : '(switch to current year)'}`;
+    b.onclick = () => window.remindCurrent();
+    el.appendChild(b);
+  }
+
+  // Super Admin: Add member, Excel, PDF, Settings (mobile)
+  if (sa) {
+    const add = document.createElement('button');
+    add.className = 'btn-sec'; add.innerHTML = '➕ নতুন সদস্য';
+    add.onclick = () => window.openMemberModal(null);
+    el.appendChild(add);
+
+    const xl = document.createElement('button');
+    xl.className = 'btn-sec'; xl.innerHTML = '📊 Excel';
+    xl.onclick = () => window.doExcel();
+    el.appendChild(xl);
+
+    const pdf = document.createElement('button');
+    pdf.className = 'btn-pri'; pdf.innerHTML = '📄 PDF';
+    pdf.onclick = () => window.doPDF();
+    el.appendChild(pdf);
+
+    // Mobile settings icon
+    const sg = document.createElement('button');
+    sg.className='btn-icon'; sg.style.cssText='background:rgba(124,58,237,.15);color:var(--acc-lt);width:34px;height:34px;';
+    sg.innerHTML='⚙️'; sg.title='Settings'; sg.onclick=()=>window.openSettings();
+    el.appendChild(sg);
+  }
+}
+
+/** Return filtered + searched member list */
+function filtered() {
+  let list = [...S.members];
+  // ── FIX: Members now see ALL members (view-only) — no self-filtering ──
+
+  if (S.search) {
+    const q = S.search.toLowerCase();
+    list = list.filter(m=>(m.name||'').toLowerCase().includes(q)||(m.phone||'').includes(q));
+  }
+
+  if (S.filter === 'def') {
+    list = list.filter(m=>MONTHS.some(mo=>!(S.payments[m.id]?.[mo.k])));
+  } else if (S.filter === 'clr') {
+    list = list.filter(m=>MONTHS.every(mo=>!!(S.payments[m.id]?.[mo.k])));
+  } else if (S.filter === 'cur') {
+    // ── FIX: Filter by current month unpaid ──
+    list = list.filter(m=>!(S.payments[m.id]?.[CUR_M_KEY]));
+  }
+
+  return list;
+}
+
+function renderTable() {
+  const area    = document.getElementById('tableArea');
+  const list    = filtered();
+  const sa      = S.role === 'superadmin';
+  const canEdit = sa || S.role === 'admin'; // admin can toggle; member cannot
+
+  if (list.length === 0) {
+    area.innerHTML = `<div style="text-align:center;padding:70px 20px;color:var(--tm);">
+      <div style="font-size:42px;margin-bottom:12px;">📭</div>
+      <p style="font-size:15px;font-weight:700;">কোনো সদস্য পাওয়া যায়নি | No members found</p>
+      <p style="font-size:11px;margin-top:6px;">অনুসন্ধান বা ফিল্টার পরিবর্তন করে দেখুন</p>
+    </div>`;
+    return;
+  }
+
+  // Month headers — ── FIX: Highlight current month column ──
+  const monthThs = MONTHS.map((m,idx)=>{
+    const isCur = idx===CUR_M_IDX && S.year===String(NOW.getFullYear());
+    return `<th class="${isCur?'cm':''}" style="min-width:40px;">
+      <div>${m.en}${isCur?' 🔵':''}</div>
+      <div style="font-size:9px;opacity:.6;">${m.bn}</div>
+    </th>`;
+  }).join('');
+
+  const rows = list.map((m,i) => {
+    const p    = S.payments[m.id] || {};
+    const paid = MONTHS.filter(mo=>p[mo.k]).length;
+    const pct  = Math.round(paid/12*100);
+
+    const av = m.dp
+      ? `<img src="${m.dp}" class="av" onclick="window.openDP('${m.id}')" alt="DP">`
+      : `<div class="av-ph" onclick="window.openDP('${m.id}')">${initials(m.name)}</div>`;
+
+    // Payment cells
+    const pCells = MONTHS.map((mo,idx)=>{
+      const isPaid = !!(p[mo.k]);
+      const isCur  = idx===CUR_M_IDX && S.year===String(NOW.getFullYear());
+      const cls    = `pcell ${isPaid?'pd':'up'}${canEdit?'':' ro'}`;
+      const clk    = canEdit ? `onclick="window.togglePayment('${m.id}','${mo.k}')"` : '';
+      return `<td class="${isCur?'cm-td':''}" style="padding:5px;">
+        <span class="${cls}" ${clk} title="${mo.en}: ${isPaid?'Paid ✓':'Unpaid ✗'}">${isPaid?'✓':'✗'}</span>
+      </td>`;
+    }).join('');
+
+    // Progress micro-bar
+    const pbar = `<div style="width:42px;height:3px;background:var(--bdr);border-radius:3px;margin-top:3px;">
+      <div style="width:${pct}%;height:100%;border-radius:3px;background:${pct===100?'#34d399':pct>=50?'#fbbf24':'#f87171'};"></div>
+    </div>`;
+
+    // ── FIX: WhatsApp button — CURRENT MONTH ONLY logic ──
+    const curPaid = !!(p[CUR_M_KEY]);
+    const waMsgBN = curPaid
+      ? `নমস্কার ${m.name||''}! ${CUR_M_LABEL} মাসের চান্দা পরিশোধের জন্য অনেক ধন্যবাদ! 🙏`
+      : `নমস্কার ${m.name||''}, ${CUR_M_LABEL} মাসের চান্দা এখনও বাকি আছে। দয়া করে দ্রুত পরিশোধ করুন। 🙏`;
+    const waMsgEN = curPaid
+      ? `Hello ${m.name||''}! Thank you for paying your Chanda for ${CUR_M_LABEL}! 🙏`
+      : `Hello ${m.name||''}, your Chanda for ${CUR_M_LABEL} is still pending. Please pay soon. 🙏`;
+    const waMsg = `${waMsgBN}\n\n${waMsgEN}`;
+    const waTitle = curPaid ? '✓ পেমেন্ট হয়েছে — ধন্যবাদ' : '⚠️ এই মাস বকেয়া — রিমাইন্ডার';
+
+    // Edit/delete (Super Admin only)
+    const editBtns = sa ? `<td>
+      <div style="display:flex;gap:4px;justify-content:center;">
+        <button class="btn-icon" style="background:rgba(59,130,246,.15);color:#93c5fd;" onclick="window.openMemberModal('${m.id}')" title="Edit">✏️</button>
+        <button class="btn-icon" style="background:var(--dang-bg);color:#f87171;" onclick="window.deleteMember('${m.id}','${(m.name||'').replace(/'/g,"\\'")}')">🗑️</button>
+      </div>
+    </td>` : '';
+
+    return `<tr>
+      <td style="color:var(--tm);font-size:11px;font-weight:700;padding:6px 8px;">${i+1}</td>
+      <td style="padding:6px;">${av}</td>
+      <td style="padding:6px 8px;text-align:left;">
+        <div style="font-weight:700;font-size:13px;">${m.name||'—'}</div>
+        <div style="font-size:10px;color:var(--tm);">${paid}/12 · ${inr(paid*S.budget)}</div>
+        ${pbar}
+      </td>
+      <td class="hide-sm" style="color:var(--ts);font-size:11px;white-space:nowrap;">${m.phone||'—'}</td>
+      ${pCells}
+      <td>
+        <a class="btn-wa" style="width:30px;height:30px;font-size:15px;"
+          href="https://wa.me/${waPhone(m.phone||'')}?text=${encodeURIComponent(waMsg)}"
+          target="_blank" title="${waTitle}">💬</a>
+      </td>
+      ${editBtns}
+    </tr>`;
+  }).join('');
+
+  area.innerHTML = `
+    <div class="tbl-wrap">
+      <table class="ledger">
+        <thead><tr>
+          <th style="width:32px;">#</th>
+          <th style="width:44px;">DP</th>
+          <th style="min-width:130px;text-align:left;">নাম | Name</th>
+          <th class="hide-sm" style="min-width:100px;">ফোন</th>
+          ${monthThs}
+          <th>WA</th>
+          ${sa?'<th>⚙️</th>':''}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:space-between;padding:10px 16px;color:var(--tm);font-size:11px;border-top:1px solid var(--bdr);">
+      <span>${list.length} সদস্য | members shown</span>
+      <span>📅 ${S.year} · ${inr(S.budget)}/মাস · 🔵 = বর্তমান মাস (${MONTHS[CUR_M_IDX].en})</span>
+    </div>`;
+}
+
+// ─────────────────────────────────────────
+// ── FIX: WHATSAPP — CURRENT MONTH ONLY ──
+// ─────────────────────────────────────────
+
+/**
+ * "Remind All" sends a message ONLY about the current real-world month.
+ * Previous bug: sent message listing all 12 months.
+ * Fix: only CUR_M_KEY (e.g. 'mar') is checked.
+ */
+function remindCurrent() {
+  if (S.year !== String(NOW.getFullYear())) {
+    toast(`রিমাইন্ডার শুধু ${NOW.getFullYear()} এর জন্য | Switch to current year first`, 'w');
+    return;
+  }
+  const unpaid = S.members.filter(m=>!(S.payments[m.id]?.[CUR_M_KEY]));
+  if (unpaid.length === 0) {
+    toast(`🎉 সবাই ${MONTHS[CUR_M_IDX].en} মাসের চান্দা দিয়েছেন!`, 's'); return;
+  }
+  if (!confirm(`${unpaid.length} জনকে ${CUR_M_LABEL} রিমাইন্ডার পাঠাবেন?\nSend ${CUR_M_LABEL} reminder to ${unpaid.length} members?`)) return;
+
+  unpaid.forEach((m,i)=>{
+    const msg = `নমস্কার ${m.name||''}, ${CUR_M_LABEL} মাসের চান্দা এখনও বাকি আছে। দয়া করে দ্রুত পরিশোধ করুন। 🙏\n\nHello ${m.name||''}, your Chanda for ${CUR_M_LABEL} is still pending. Please pay soon. 🙏`;
+    setTimeout(()=>window.open(`https://wa.me/${waPhone(m.phone||'')}?text=${encodeURIComponent(msg)}`,'_blank'), i*700);
+  });
+  toast(`💬 ${unpaid.length} জনকে ${MONTHS[CUR_M_IDX].en} রিমাইন্ডার পাঠানো হচ্ছে`, 'i');
+}
+
+// ─────────────────────────────────────────
+// EXPORT — EXCEL
+// ─────────────────────────────────────────
+function doExcel() {
+  const hdr = ['#','নাম | Name','Phone',...MONTHS.map(m=>`${m.en}(${m.bn})`),'Paid Months','Paid ₹','Pending ₹'];
+  const rows = S.members.map((m,i)=>{
+    const p    = S.payments[m.id]||{};
+    const paid = MONTHS.filter(mo=>p[mo.k]).length;
+    return [i+1, m.name||'', m.phone||'',
+      ...MONTHS.map(mo=>p[mo.k]?'✓ Paid':'✗ Unpaid'),
+      `${paid}/12`, paid*S.budget, (12-paid)*S.budget
+    ];
+  });
+  const totalPaid = S.members.reduce((s,m)=>s+MONTHS.filter(mo=>S.payments[m.id]?.[mo.k]).length, 0);
+  rows.push(['','── SUMMARY ──','', ...MONTHS.map(()=>''), '', totalPaid*S.budget, (S.members.length*12-totalPaid)*S.budget]);
+  rows.push(['',`Extra/Misc: ${S.extraNote||''}`, '', ...MONTHS.map(()=>''), '', S.extra, '']);
+  rows.push(['','Grand Total Collected','', ...MONTHS.map(()=>''), '', totalPaid*S.budget+S.extra, '']);
+
+  try {
+    if (typeof XLSX==='undefined') throw new Error('XLSX not loaded');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([hdr,...rows]);
+    ws['!cols'] = [{wch:4},{wch:24},{wch:14},...MONTHS.map(()=>({wch:11})),{wch:12},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws,`Chanda ${S.year}`);
+    XLSX.writeFile(wb,`Chanda_Ledger_${S.year}.xlsx`);
+    toast('📊 Excel ডাউনলোড | Excel exported','s');
+  } catch(err){
+    // CSV fallback
+    const csv = [hdr,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+    const b   = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(b);
+    const a   = document.createElement('a'); a.href=url; a.download=`Chanda_${S.year}.csv`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+    toast('📄 CSV ডাউনলোড | CSV exported (XLSX fallback)','i');
+  }
+}
+
+// ─────────────────────────────────────────
+// EXPORT — PDF (jsPDF + AutoTable)
+// ─────────────────────────────────────────
+function doPDF() {
+  if (typeof window.jspdf === 'undefined') {
+    toast('PDF লাইব্রেরি লোড হয়নি — রিফ্রেশ করুন | jsPDF not loaded','e'); return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+
+  const totalPaid  = S.members.reduce((s,m)=>s+MONTHS.filter(mo=>S.payments[m.id]?.[mo.k]).length,0);
+  const paidAmt    = totalPaid * S.budget;
+  const expected   = S.members.length * 12 * S.budget;
+  const pending    = expected - paidAmt;
+  const rate       = expected>0 ? Math.round(paidAmt/expected*100) : 0;
+  const collected  = paidAmt + S.extra;
+
+  // Header strip
+  doc.setFillColor(30,27,75);
+  doc.rect(0,0,300,22,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica','bold'); doc.setFontSize(16);
+  doc.text('CHANDA PRO — Collection Report', 14, 11);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
+  doc.text(`Year: ${S.year}  |  Monthly Budget: Rs.${S.budget}  |  Generated: ${new Date().toLocaleDateString('en-IN')}`, 14, 17);
+
+  // Summary boxes
+  const boxes = [
+    {label:'Members',       val:String(S.members.length), color:[124,58,237]},
+    {label:'Total Collected',val:`Rs.${collected.toLocaleString('en-IN')}`, color:[5,150,105]},
+    {label:'Pending',       val:`Rs.${pending.toLocaleString('en-IN')}`, color:[220,38,38]},
+    {label:'Extra/Misc',    val:`Rs.${S.extra.toLocaleString('en-IN')}`, color:[6,182,212]},
+    {label:'Collection Rate',val:`${rate}%`, color:[217,119,6]},
+  ];
+  let bx = 14;
+  boxes.forEach(b=>{
+    doc.setFillColor(...b.color);
+    doc.roundedRect(bx,25,50,14,2,2,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text(b.label,bx+3,30);
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(b.val,bx+3,36);
+    bx+=54;
+  });
+
+  // Ledger table
+  const head = [['#','Name','Phone',...MONTHS.map(m=>m.en),'Paid','Pending']];
+  const body  = S.members.map((m,i)=>{
+    const p    = S.payments[m.id]||{};
+    const paid = MONTHS.filter(mo=>p[mo.k]).length;
+    return [String(i+1), m.name||'—', m.phone||'—',
+      ...MONTHS.map(mo=>p[mo.k]?'P':'-'),
+      `${paid}/12`, `Rs.${((12-paid)*S.budget).toLocaleString('en-IN')}`
+    ];
+  });
+
+  doc.autoTable({
+    head, body, startY:43,
+    styles:{ fontSize:7.5, cellPadding:2, halign:'center', textColor:[30,30,60] },
+    headStyles:{ fillColor:[30,27,75], textColor:255, fontStyle:'bold', fontSize:7 },
+    alternateRowStyles:{ fillColor:[245,244,255] },
+    columnStyles:{
+      0:{cellWidth:8}, 1:{cellWidth:36,halign:'left'}, 2:{cellWidth:22,halign:'left'},
+      ...MONTHS.reduce((o,_,i)=>({...o,[i+3]:{cellWidth:11}}),{}),
+      15:{cellWidth:14}, 16:{cellWidth:22}
+    },
+    // ── FIX: Highlight current month column in PDF ──
+    didParseCell:(data)=>{
+      const ci = CUR_M_IDX+3; // offset: #, Name, Phone
+      if (data.column.index===ci && data.section==='head') data.cell.styles.fillColor=[6,182,212];
+      if (data.column.index===ci && data.section==='body') data.cell.styles.fillColor=[224,247,250];
+    },
+    // Color paid (P) cells green
+    willDrawCell:(data)=>{
+      if (data.section==='body' && data.column.index>=3 && data.column.index<=14) {
+        if (data.cell.text[0]==='P') data.cell.styles.fillColor=[220,252,231];
+      }
+    },
+  });
+
+  const finalY = doc.lastAutoTable.finalY+6;
+  doc.setFontSize(8); doc.setTextColor(130,130,160); doc.setFont('helvetica','normal');
+  doc.text(`P=Paid · -=Unpaid · 🔵=Current Month (${MONTHS[CUR_M_IDX].en}) · Extra: Rs.${S.extra} (${S.extraNote||'N/A'}) · Rate: ${rate}%`, 14, finalY);
+  doc.text(`Chanda Pro · ${new Date().toLocaleString('en-IN')}`, 14, finalY+5);
+
+  doc.save(`Chanda_Report_${S.year}.pdf`);
+  toast('📄 PDF তৈরি হচ্ছে | PDF downloaded','s');
+}
+
+// ─────────────────────────────────────────
+// MODALS
+// ─────────────────────────────────────────
+
+function openMemberModal(id=null) {
+  if (S.role!=='superadmin') { toast('শুধু Super Admin | SA only','w'); return; }
+  const m = id ? S.members.find(x=>x.id===id) : null;
+  document.getElementById('mTitle').textContent = id ? 'সদস্য সম্পাদনা | Edit' : 'নতুন সদস্য | Add';
+  document.getElementById('mId').value    = id||'';
+  document.getElementById('mName').value  = m?.name||'';
+  document.getElementById('mPhone').value = m?.phone||'';
+  document.getElementById('mNote').value  = m?.note||'';
+  document.getElementById('mRole').value  = m?.role||'member';
+  document.getElementById('mUID').value   = m?.uid||'';
+  document.getElementById('memberModal').style.display='flex';
+}
+function closeMemberModal(){document.getElementById('memberModal').style.display='none';}
+
+async function submitMember(){
+  const id    = document.getElementById('mId').value;
+  const name  = document.getElementById('mName').value.trim();
+  const phone = document.getElementById('mPhone').value.trim().replace(/\D/g,'');
+  const note  = document.getElementById('mNote').value.trim();
+  const role  = document.getElementById('mRole').value;
+  const uid   = document.getElementById('mUID').value.trim();
+  if (!name)  { toast('নাম আবশ্যক | Name required','e'); return; }
+  if (!phone) { toast('ফোন আবশ্যক | Phone required','e'); return; }
+  await saveMember(id||null,{name,phone,note,role,uid:uid||null});
+}
+
+function openDP(memberId){
+  const m = S.members.find(x=>x.id===memberId);
+  if (!m) return;
+  // Super Admin can upload anyone's DP; members can only upload their own
+  const canUp = S.role==='superadmin' || S.memberId===memberId;
+  document.getElementById('dpId').value        = memberId;
+  document.getElementById('dpName').textContent = m.name||'—';
+  document.getElementById('dpInit').textContent = initials(m.name);
+  const img = document.getElementById('dpImg');
+  if (m.dp) { img.src=m.dp; img.style.display='block'; document.getElementById('dpInit').style.display='none'; }
+  else       { img.style.display='none'; document.getElementById('dpInit').style.display='block'; }
+  document.getElementById('dpUpload').style.display = canUp ? 'block' : 'none';
+  document.getElementById('dpRO').style.display     = !canUp ? 'block' : 'none';
+  document.getElementById('dpSave').style.display   = 'none';
+  document.getElementById('dpFile').value = '';
+  document.getElementById('dpModal').style.display = 'flex';
+}
+function closeDPModal(){document.getElementById('dpModal').style.display='none';}
+
+async function handleDPFile(e){
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { toast('শুধু ছবি ফাইল | Image files only','e'); return; }
+  try {
+    const b64 = await compressImg(file,220,0.72);
+    const kb  = Math.round(b64.length*.75/1024);
+    if (kb>500) { toast(`ছবি বড় (${kb}KB) — ছোট ছবি ব্যবহার করুন`,'w'); return; }
+    const img = document.getElementById('dpImg');
+    img.src=b64; img.style.display='block';
+    document.getElementById('dpInit').style.display='none';
+    const btn=document.getElementById('dpSave');
+    btn.style.display='inline-flex'; btn.dataset.b64=b64;
+    toast(`ছবি তৈরি (${kb}KB) | Ready — click Save`,'i');
+  } catch(err){ toast('ছবি প্রসেস ব্যর্থ | Image processing failed','e'); }
+}
+
+async function saveDP(){
+  const memberId = document.getElementById('dpId').value;
+  const b64      = document.getElementById('dpSave').dataset.b64;
+  if (!b64) return;
+  const btn = document.getElementById('dpSave');
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-sm"></span>&nbsp;সংরক্ষণ হচ্ছে...';
+  await updateDP(memberId,b64);
+  btn.disabled=false;
+  closeDPModal();
+}
+
+function openProfile(){
+  if (!S.memberId) { toast('প্রোফাইল লিঙ্ক নেই | No profile linked to this phone','w'); return; }
+  const m = S.members.find(x=>x.id===S.memberId);
+  if (!m) { toast('প্রোফাইল পাওয়া যায়নি','e'); return; }
+  const p    = S.payments[m.id]||{};
+  const paid = MONTHS.filter(mo=>p[mo.k]).length;
+
+  const av = m.dp
+    ? `<img src="${m.dp}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--bdr-acc);margin:0 auto 12px;display:block;">`
+    : `<div style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--acc),#3b82f6);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#fff;margin:0 auto 12px;">${initials(m.name)}</div>`;
+
+  const grid = MONTHS.map((mo,idx)=>{
+    const isPaid = !!(p[mo.k]);
+    const isCur  = idx===CUR_M_IDX;
+    return `<div style="background:${isPaid?'var(--succ-bg)':'var(--dang-bg)'};border:1px solid ${isPaid?'rgba(52,211,153,.25)':'rgba(248,113,113,.25)'};border-radius:8px;padding:6px 3px;text-align:center;font-size:11px;font-weight:700;${isCur?'outline:2px solid #67e8f9;outline-offset:2px;':''}">
+      <div style="color:${isPaid?'#34d399':'#f87171'}">${mo.en}</div>
+      <div style="font-size:16px;">${isPaid?'✓':'✗'}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('profileContent').innerHTML = `
+    <div>
+      ${av}
+      <h3 style="font-family:'Syne',sans-serif;font-size:19px;font-weight:800;">${m.name}</h3>
+      <p style="color:var(--ts);font-size:12px;margin:3px 0 14px;">${m.phone}</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;">
+        <div style="background:var(--bg-surf);border-radius:12px;padding:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#34d399;">${paid}</div>
+          <div style="font-size:10px;color:var(--ts);">মাস পেমেন্ট</div>
+        </div>
+        <div style="background:var(--bg-surf);border-radius:12px;padding:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#f87171;">${12-paid}</div>
+          <div style="font-size:10px;color:var(--ts);">বাকি মাস</div>
+        </div>
+        <div style="background:var(--bg-surf);border-radius:12px;padding:12px;">
+          <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:#fbbf24;">${inr(paid*S.budget)}</div>
+          <div style="font-size:10px;color:var(--ts);">পরিশোধিত</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:14px;">${grid}</div>
+      <button class="btn-sec" style="width:100%;justify-content:center;" onclick="window.openDP('${m.id}')">📸 DP পরিবর্তন | Change Profile Picture</button>
+    </div>`;
+  document.getElementById('profileModal').style.display='flex';
+}
+function closeProfileModal(){document.getElementById('profileModal').style.display='none';}
+
+function openSettings(){
+  if (S.role!=='superadmin') { toast('শুধু Super Admin | SA only','w'); return; }
+  document.getElementById('stYear').textContent   = S.year;
+  document.getElementById('stBudget').value       = S.budget;
+  document.getElementById('stExtra').value        = S.extra||'';
+  document.getElementById('stExNote').value       = S.extraNote||'';
+  refreshExtraDisplay();
+  document.getElementById('settingsModal').style.display='flex';
+}
+function closeSettings(){document.getElementById('settingsModal').style.display='none';}
+
+// ─────────────────────────────────────────
+// SCREEN TRANSITIONS
+// ─────────────────────────────────────────
+function showLogin() {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display       = 'none';
+  document.getElementById('loginScreen').style.display   = 'flex';
+}
+function showApp() {
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display   = 'none';
+  document.getElementById('mainApp').style.display       = 'block';
+}
+
+// ─────────────────────────────────────────
+// GLOBAL BINDINGS (for inline onclick="" handlers)
+// ─────────────────────────────────────────
+window.sendOTP         = sendOTP;
+window.verifyOTP       = verifyOTP;
+window.togglePayment   = togglePayment;
+window.deleteMember    = deleteMember;
+window.openMemberModal = openMemberModal;
+window.closeMemberModal= closeMemberModal;
+window.submitMember    = submitMember;
+window.openDP          = openDP;
+window.closeDPModal    = closeDPModal;
+window.handleDPFile    = handleDPFile;
+window.saveDP          = saveDP;
+window.openProfile     = openProfile;
+window.closeProfileModal= closeProfileModal;
+window.openSettings    = openSettings;
+window.closeSettings   = closeSettings;
+window.saveBudget      = saveBudget;
+window.saveExtra       = saveExtra;
+window.doExcel         = doExcel;
+window.doPDF           = doPDF;
+window.remindCurrent   = remindCurrent;
+
+window.selYear = async y => {
+  S.year = y;
+  await Promise.all([loadSettings(), loadPayments(y)]);
+  renderYearBtns(); renderStats(); renderTable();
+  if (S.role==='superadmin') {
+    document.getElementById('bcAmt').textContent  = S.budget;
+    document.getElementById('stYear').textContent = y;
+    refreshExtraDisplay();
+  }
+};
+
+window.setFilter = mode => {
+  S.filter = mode;
+  ['All','Def','Clr','Cur'].forEach(id=>document.getElementById(`f${id}`)?.classList.remove('active'));
+  const m = {all:'fAll',def:'fDef',clr:'fClr',cur:'fCur'};
+  document.getElementById(m[mode])?.classList.add('active');
+  renderTable();
+};
+
+window.doSearch = val => { S.search = val; renderTable(); };
+
+window.doLogout = async () => {
+  try {
+    await signOut(auth);
+    Object.assign(S,{user:null,role:null,memberId:null,members:[],payments:{},extra:0,extraNote:''});
+    showLogin();
+    document.getElementById('phoneSection').style.display = 'block';
+    document.getElementById('otpSection').style.display   = 'none';
+    document.getElementById('phoneInput').value = '';
+    [1,2,3,4,5,6].forEach(n=>{const e=document.getElementById(`otp${n}`);if(e)e.value='';});
+  } catch(err){ toast('লগআউট ব্যর্থ | Logout failed','e'); }
+};
+
+// ─────────────────────────────────────────
+// AUTH STATE LISTENER — App Entry Point
+// ─────────────────────────────────────────
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    S.user = user;
+
+    // 1. Resolve role (SA hardcoded / Firestore / default member)
+    const rd = await resolveRole(user.uid);
+    S.role     = rd.role;
+    S.memberId = rd.memberId || null;
+
+    // 2. Auto-link member by matching phone number (for first login)
+    if (S.role==='member' && !S.memberId && user.phoneNumber) {
+      const ph10 = user.phoneNumber.replace(/^\+91/,'').replace(/\s/g,'');
+      try {
+        const snap = await getDocs(query(collection(db,'members'),where('phone','==',ph10)));
+        if (!snap.empty) {
+          S.memberId = snap.docs[0].id;
+          await setDoc(doc(db,'userRoles',user.uid),{role:'member',memberId:S.memberId},{merge:true});
+        }
+      } catch(err){ console.warn('[autoLink]',err); }
+    }
+
+    showApp();
+    await refresh();
+  } else {
+    showLogin();
+  }
+});
+
+// ─────────────────────────────────────────
+// DOM READY SETUP
+// ─────────────────────────────────────────
+wireOTP();
+
+// Escape key closes all modals
+document.addEventListener('keydown', e => {
+  if (e.key==='Escape') {
+    closeMemberModal(); closeDPModal(); closeProfileModal(); closeSettings();
+  }
+});
+
+// Print logged-in UID to console for SA setup verification
+auth.onIdTokenChanged && auth.onIdTokenChanged(u => {
+  if (u) console.log(
+    '%c🔱 Logged in as UID:', 'color:#7c3aed;font-weight:900;font-size:14px;', u.uid,
+    '\n%cIf this is you, set SUPER_ADMIN_UID to this value.',
+    u.uid === SUPER_ADMIN_UID
+      ? 'color:#059669;' // green = already SA
+      : 'color:#d97706;' // amber = not SA yet
+  );
+});
+
+</script>
+</body>
+</html>
